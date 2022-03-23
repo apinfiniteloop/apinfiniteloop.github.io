@@ -20,28 +20,40 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Franz的博客">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="R 树R 树是用来做空间数据存储的树状数据结构。例如给地理位置，矩形和多边形这类多维数据创建索引。R树是由Antonin Guttman于1984年提出的。人们随后发现它在理论和应用方面都非常实用。 在现实生活中，R树可以用来存储地图上的空间信息，例如餐馆地址，或者地图上用来构造街道，建筑，湖泊边缘和海岸线的多边形。然后可以用它来回答“查找距离我2千米以内的博物馆”，“检索距离我2千米以内的所有路">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用R树的空间索引大幅度提升路网最近邻查找性能">
+<meta property="og:url" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/index.html">
 <meta property="og:site_name" content="Franz的博客">
+<meta property="og:description" content="R 树R 树是用来做空间数据存储的树状数据结构。例如给地理位置，矩形和多边形这类多维数据创建索引。R树是由Antonin Guttman于1984年提出的。人们随后发现它在理论和应用方面都非常实用。 在现实生活中，R树可以用来存储地图上的空间信息，例如餐馆地址，或者地图上用来构造街道，建筑，湖泊边缘和海岸线的多边形。然后可以用它来回答“查找距离我2千米以内的博物馆”，“检索距离我2千米以内的所有路">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/R_Tree_demo.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/nearest_point_test_result.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/result1.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/result2.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/result3.png">
+<meta property="article:published_time" content="2022-03-23T15:58:23.000Z">
+<meta property="article:modified_time" content="2022-03-23T15:59:41.999Z">
 <meta property="article:author" content="Franz Yang">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="GIS">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/R_Tree_demo.png">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>Franz的博客</title>
+  <title>利用R树的空间索引大幅度提升路网最近邻查找性能 | Franz的博客</title>
   
 
 
@@ -139,9 +151,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -157,10 +170,9 @@
       <meta itemprop="name" content="Franz的博客">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/" class="post-title-link" itemprop="url">利用R树的空间索引大幅度提升路网最近邻查找性能</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          利用R树的空间索引大幅度提升路网最近邻查找性能
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -184,7 +196,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="R-树"><a href="#R-树" class="headerlink" title="R 树"></a>R 树</h1><p>R 树是用来做空间数据存储的树状数据结构。例如给地理位置，矩形和多边形这类多维数据创建索引。R树是由Antonin Guttman于1984年提出的。人们随后发现它在理论和应用方面都非常实用。 在现实生活中，R树可以用来存储地图上的空间信息，例如餐馆地址，或者地图上用来构造街道，建筑，湖泊边缘和海岸线的多边形。然后可以用它来回答“查找距离我2千米以内的博物馆”，“检索距离我2千米以内的所有路段”（然后显示在导航系统中）或者“查找（直线距离）最近的加油站”这类问题。R树还可以用来加速使用包括大圆距离在内的各种距离度量方式的最邻近搜索。</p>
+        <h1 id="R-树"><a href="#R-树" class="headerlink" title="R 树"></a>R 树</h1><p>R 树是用来做空间数据存储的树状数据结构。例如给地理位置，矩形和多边形这类多维数据创建索引。R树是由Antonin Guttman于1984年提出的。人们随后发现它在理论和应用方面都非常实用。 在现实生活中，R树可以用来存储地图上的空间信息，例如餐馆地址，或者地图上用来构造街道，建筑，湖泊边缘和海岸线的多边形。然后可以用它来回答“查找距离我2千米以内的博物馆”，“检索距离我2千米以内的所有路段”（然后显示在导航系统中）或者“查找（直线距离）最近的加油站”这类问题。R树还可以用来加速使用包括大圆距离在内的各种距离度量方式的最邻近搜索。</p>
 <p><img src="/2022/03/23/%E5%88%A9%E7%94%A8R%E6%A0%91%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E5%A4%A7%E5%B9%85%E5%BA%A6%E6%8F%90%E5%8D%87%E8%B7%AF%E7%BD%91%E6%9C%80%E8%BF%91%E9%82%BB%E6%9F%A5%E6%89%BE%E6%80%A7%E8%83%BD/R_Tree_demo.png" alt="二维的 R 树结构示意"></p>
 <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>R 树中的字母“R”代表“Rectangle”。R树的核心思想是<strong>聚合距离相近的节点，并在树的上一层将这些点表示为它们的最小外接矩形</strong>。R树是平衡树。</p>
 <h3 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h3><p>R 树接受一个待查找的框，从顶层开始搜索，看树中的每个边界框与待查找框是否相交，并在相交的边界框的子边界框中继续查找。该过程递归进行直到返回最底层的对象为止。</p>
@@ -240,194 +252,34 @@
 <li><code>geopandas.sindex.SpatialIndex.nearest</code>: <a target="_blank" rel="noopener" href="https://geopandas.org/en/stable/docs/reference/api/geopandas.sindex.SpatialIndex.nearest.html">https://geopandas.org/en/stable/docs/reference/api/geopandas.sindex.SpatialIndex.nearest.html</a></li>
 </ul>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/GIS/" rel="tag"># GIS</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/21/[%E7%BF%BB%E8%AF%91]%20%E8%82%96%E9%82%A6%EF%BC%9AA%20%E5%A4%A7%E8%B0%83%E6%B3%A2%E5%85%B0%E6%B0%91%E6%AD%8C%E5%B9%BB%E6%83%B3%E6%9B%B2%EF%BC%8C%E4%BD%9C%E5%93%81%2013/">
+        
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Franz Yang">
-      <meta itemprop="description" content="">
-    </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Franz的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/21/%5B%E7%BF%BB%E8%AF%91%5D%20%E8%82%96%E9%82%A6%EF%BC%9AA%20%E5%A4%A7%E8%B0%83%E6%B3%A2%E5%85%B0%E6%B0%91%E6%AD%8C%E5%B9%BB%E6%83%B3%E6%9B%B2%EF%BC%8C%E4%BD%9C%E5%93%81%2013/" class="post-title-link" itemprop="url">【翻译】肖邦：A 大调波兰民歌幻想曲，作品 13</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-21 20:13:50 / 修改时间：20:22:13" itemprop="dateCreated datePublished" datetime="2022-03-21T20:13:50+08:00">2022-03-21</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9F%B3%E4%B9%90/" itemprop="url" rel="index"><span itemprop="name">音乐</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9F%B3%E4%B9%90/%E5%8F%A4%E5%85%B8%E4%B9%90/" itemprop="url" rel="index"><span itemprop="name">古典乐</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="A-大调波兰民歌幻想曲，作品-13"><a href="#A-大调波兰民歌幻想曲，作品-13" class="headerlink" title="A 大调波兰民歌幻想曲，作品 13"></a>A 大调波兰民歌幻想曲，作品 13</h1><p>最近找到了一部质量奇高的肖邦作品合集，因此发现了一些以前没有认真听过的作品：包括《A 大调波兰民歌幻想曲，作品 13（Fantasy on Polish Airs in A major, Op. 13）》和《F 大调克拉科维亚克音乐会回旋曲，作品 14（Rondo à la Krakowiak in F major, Op.14）》。前阵子听了肖邦的一些晚期作品（如《幻想波兰舞曲，作品 61》），在略微试探了其严肃晦涩的晚期风格后又回到流畅而潇洒的早期作品中，就好像现在的季节一样从寒冬转变到了春天。因此对这两部作品尤为喜爱，反复聆听。</p>
-<p>因自身水平所限难以撰写乐评，遂在别处找到了一篇关于作品 13 的乐评。原文语言为英语且含有大量音乐术语与波兰语专有名词，因此翻译的效果十分拙劣，望见谅。</p>
-<blockquote>
-<p>原文作者：Mieczysław Tomaszewski<br>原文链接：[<a target="_blank" rel="noopener" href="https://chopin.nifc.pl/en/chopin/kompozycja/49]">https://chopin.nifc.pl/en/chopin/kompozycja/49]</a><br>翻译：Franz Yang</p>
-</blockquote>
-<p>肖邦很有可能是在 1828 年谱写了这首《波兰民歌幻想曲》，但直到 1830 年之前都没有公开演出。该曲于 1833 年——也就是他在巴黎的日子里，以《Fantasie sur des Airs Nationaux Polonais》的名称发表。音乐批评家 Maurycy Mochnacki 在该作品于华沙首演后的评价中形容其为“民歌的大杂烩”，并着重强调“原曲美妙的简洁性被肖邦吸收同化了”。</p>
-<p>这部幻想曲的确体现了幻想曲这一体裁如大杂烩一般的多样性，由一些松散而具有共同特征的旋律组成。肖邦一共选择了三个旋律，以富有变化的形式将它们展现出来，并在每个旋律前面辅以一个引子。然而，称这部作品过于“松散”（loose）一定程度上是正确的。它具有鲜明而宏大的格局，整部作品是一个有机的整体不同主题之间的切换流畅而不带波折。与之形成对比的是，该作品的起始与收尾部分分别带有期盼与余音绕梁之感，往往能激起听众的兴趣与期待。</p>
-<!-- It has a distinctive dramatic shape and was composed as a coherent whole. Each passage from theme to theme occurs without a drop in tension. On the contrary: the switches are made in a way that arouses interest and expectancy, with anticipation and echo.   -->
-
-<p>全曲的三个主题彼此伴随，形成一首足够称得上是“具有本国特色”或者“地道”的民歌幻想曲。第一个主题给我们带来 Laura 和 Philo 的浪漫故事，第二个主题呈现了类似于波兰作曲家 Kurpiński 所创作的“杜姆卡”的旋律，但违背了本作自民歌而来的初衷。第三个主题带有一种波兰民间舞曲的旋律：Kujawiak。这一主题的民谣特征自然也就相当明显了。</p>
-<!-- The three themes complement one another, forming a whole that is indeed ‘national’ or ‘native’. The first brings us the melody of a romance about Laura and Philo, the second renders the tune of a *dumka* attributed to [Kurpiński](https://redirect.nifc.pl/person/6771/en) but betraying folk provenance, and the third carries the melody of a dance – a kujawiak, the folk character of which is beyond dispute.   -->
-
-<p>为了保持与幻想曲题材特点的一致性，该作品的主题由一个引子引出。引子的节奏进行的十分缓慢，属于不过分的广板（<em>Largo ma non troppo</em>）。一定程度上这个引子可以看作是一种夜曲（<em>nocturne</em>）——肖邦非正式意义的第一首夜曲。但它为肖邦两年后将要创作的的夜曲与两部钢琴协奏曲的小广板（<em>Larghetto</em>）乐章埋下了伏笔。在引子如梦如幻的旋律中间，我们已经能隐约窥见本作品的叙事特征。</p>
-<!-- In keeping with the conventions of the genre, the body of the work is preceded by an introduction, which proceeds at a slow tempo, *Largo ma non troppo*. This may be termed a kind of [*nocturne*](http://en.chopin.nifc.pl/chopin/genre/detail/id/11) – the first of Chopin’s nocturnes. Yet it presages not just the nocturnes, for which we will have to wait another two years, but also the larghettos of the two piano concertos. Already we have here that characteristic spinning-out of a narrative somewhere between dreaming and reverie.   -->
-
-<p>全曲第一个主题来自于歌曲《Już miesiąc zeszedł（月亮已经升起）》，由甜美而流畅的钢琴声部呈现，温柔（<em>dolce</em>）而简洁（<em>semplice</em>）。芭蕾般曼妙的旋律伴随着夜曲形式的固定音型以及弦乐轻柔的低喃继续发展。紧随其后的是连续的变奏，使得旋律变得细碎。从第二变奏开始，变奏修饰音的跑动幅度增加，而第三个变奏则在钢琴声部浓郁的华彩中结束。需要注意的是，在这部作品中肖邦同样也遵从了“风格鲜明”（<em>style brillant</em>）的作曲原则。一段寂静后，圆号声部吹响的八度音带来了全曲的另一个主题：Kurpiński 的主题，也就是“杜姆卡”。“杜姆卡”体现了波兰南部的一种民谣，不过更接近于乌克兰风格而非克拉科维亚州的风格。来自于 Karol Kurpiński 的音乐剧《Elegia na śmierć Tadeusza Kościuszki（Elegy on the death of Tadeusz Kościuszko）》中的一段书面引用最近解开了肖邦具体在何处找到这一主题的灵感的问题。因此调性的变化也就显而易见了：从 Laura 和 Philo 的华丽A大调转变成沉郁忧伤的升f小调。在 Kurpiński 的作品里，这段旋律旁注释了波兰诗人 Kantorbery Tymowski 的一句话：“悲伤千万家（<em>Sorrow now stood in every home</em>）”。</p>
-<!-- The first theme, taken from the song ‘Już miesiąc zeszedł’ [The moon now has risen], is presented in a mellifluous manner by the piano, with the requisite sweetness (*dolce*) and simplicity (*semplice*). The arabesque of the melody moves along against the nocturne-like ostinato accompaniment and the soft murmuring of the strings. It is followed by successive variations, which break up the tune into pieces. In the second variation, the movement of the figurations increases, and the last is overcome by a pianistic frenzy. One must not forget that in this composition, too, Chopin submitted to the rules of the *style brillant*. A hush, the octave of the horns announces a new phase in the narrative; the second theme comes in – Kurpiński’s theme, a *dumka* representing the folklore of the south of the country, more Ukrainian than Cracovian. It recently came to light where Chopin found this theme. It is a literal quotation from Karol Kurpiński’s melodramatic *Elegia na śmierć Tadeusza Kościuszki*[Elegy on the death of Tadeusz Kościuszko]. Hence the change of key is self-evident: from the buoyant A major of Laura and Philo to the pensive and doleful F sharp minor. In the Kurpiński, this melody was accompanied by words from Kantorbery Tymowski: ‘Sorrow now stood in every home’.   -->
-
-<p>管弦乐团的乍然与钢琴声部“热情”（<em>con fuoco</em>）与有力（<em>con forza</em>）的演奏可能是想表达 Kościuszko 的死对于波兰人民的冲击。紧随其后的是一段深沉的夜曲。肖邦流畅地将相当简单的“杜姆卡”旋律转化为一首精致巧妙且极具表现力的夜曲，这让人们不禁心生钦佩。与之前一样，曲目又迎来了丰富的变奏，短暂的平静之后又继续开始华彩。最后，活力的 kujiawiak 舞蹈主题开始了。</p>
-<!-- The striking of the orchestra and the piano *con fuoco* and *con forza* may have been meant to convey the sudden impression made on Poles by the news of Kościuszko’s death. What follows is a thoughtful, meditative nocturne. One admires the way Chopin transformed the supremely simple dumka melody into a masterfully sophisticated and expressively distinctive song of the night. Again, we have exuberant figuration, calmed for a moment before resuming its frenzy. In comes a vigorous kujawiak, close at times to an oberek.   -->
-
-<p>早期的乐评家曾想过这个听起来略有怪异的主题是如何进入到肖邦的音乐中的。是他自己想出来的还是他在别的地方听到的？这个疑虑被波兰音乐家 Oskar Kolberg 打消了：“毫无疑问这是个源自民谣的动机”，他向还在对这个问题纳闷的专题作者 Marceli Antoni Szulc 解释道。尚未成名的人种志研究者（ethnographer）Kolberg 甚至让 Szulc 去他的作品集《人民（<em>Lud</em>）》中去寻找答案，因为在其中他引用了肖邦使用的 kujawiak 舞曲的原型。Kolberg 在一个坐落在库亚维（Cuiavia）地区的名为 Służewo 的村庄里发现了该舞曲的原型。但是肖邦是怎么能听到这个舞曲的？Kolberg 提供了两个假设：要不肖邦是亲自从曾与自己定婚的沃津斯卡（Wodziński）在 Służewo 村的家里听到的（虽然我们到现在都不知道他有没有去做过客），要不就可能是沃津斯卡家里的某一个人有一天把这段旋律哼给了肖邦听。</p>
-<!-- Earlier commentators wondered how this peculiarly sounding theme found its way into Chopin’s music. Did he devise it himself or did he hear it somewhere? The doubts were dispelled by the indispensable Oskar Kolberg: ‘There is not the slightest doubt that this is a folk motif’, he explained to the hesitant monographer [Marceli Antoni Szulc](https://redirect.nifc.pl/person/1294/en). The pre-eminent ethnographer even directed Szulc to one of the volumes of his collection *Lud* [The people], in which he cites the prototype of Chopin’s kujawiak. Kolberg found it in Służewo, in the Cuiavia region. But how did Chopin come to hear this kujawiak? Kolberg presents two hypotheses: either Chopin heard it himself at the Wodzińskis’ home in Służewo (though as yet we do not know whether he was ever their guest) or one of the young Wodzińskis hummed it to Chopin one day.   -->
-
-<p>《波兰民歌幻想曲》是一首音乐会作品，因此也就需要一个尾声（coda）作为结束。这部作品的尾声就如前面的 kujawiak 舞曲一样活力而洪亮。</p>
-<!-- The *Fantasy on Polish Airs* is a concert work, and so it cannot dispense with a coda, which is just as vigorous and insistent as the kujawiak itself.   -->
-
-<p>《幻想曲》一共在华沙演奏了三次。第一次是于肖邦在克拉科夫郊区街的会客厅演奏的。乐团由 Kurpiński 指挥，听众均为音乐界精英，其中以 Elsner 为代表。演奏得到了热烈的反响和高度赞赏。同一月，肖邦在波兰国家音乐厅，在一场规模盛大的音乐会中演奏了这个波兰主题的“大杂烩”。但他对自己的演出表现比较失望。他使用的钢琴声音比较单薄。就连批评家 Mochnacki 都批评他演奏的太安静了。在同年的10月11日，波兰的十一月起义（November Uprising）之前，肖邦的最后一场华沙音乐会中，在约700名听众面前，肖邦没有犯先前的错误，且完美顺利地演奏了这部作品。</p>
-<!-- Warsaw heard the *Fantasy* three times. For the first time in the Chopins’ drawing-room on Krakowskie Przedmieście, in March 1830. The group of musicians was conducted by Kurpiński, and the audience comprised the musical elite, led by [Elsner](https://redirect.nifc.pl/person/4349/en). A gushing review was forthcoming. That same month, Chopin performed his ‘Potpuria’ on Polish themes in a grand concert at the [National Theatre](http://en.chopin.nifc.pl/chopin/places/poland/id/628). He was a bit disappointed by his performance. The piano at his disposal had rather a thin sound. Even Mochnacki criticised the playing for being too quiet. The error was rectified for Chopin’s last Warsaw concert, on 11 October that year, which took place a few weeks before the outbreak of the November Uprising, in front of an audience of around 700.   -->
-
-<p>肖邦在一封信中谈到了十月的这一场演出：“在 Gładkowska 女士报幕完毕后，乐团开始了（幻想曲）的演奏。这一次我把握住了节奏，乐团也把握住了节奏，而且观众们也都在专心聆听。只有在这次演出时结尾的舞曲（mazur）收获了热烈的掌声。舞曲演奏完毕，准备退场的时候，现场不仅没有嘘声，而且我足足谢幕了四次”。这次演出成功不是没有理由的：乐团指挥 Carlo Soliva 出色地调动了整个管弦乐团，“以前从未有这么出色”，肖邦说道。而且肖邦这一次是在一架维也纳产的斯特莱彻（Streicher）钢琴上演奏的——这是当时整个华沙最好的钢琴。</p>
-<!-- Chopin wrote about the October performance in a letter: ‘After leading Miss Gładkowska from the stage, we set about the *Potpourri on the Moon that has risen*, etc. This time I knew what I was doing, and the orchestra knew what it was doing, and the parterre appreciated. Only on this occasion did the mazur at the end [the kujawiak that closes the *Fantasy*] draw great applause, after which I was called back out – not once did anyone hiss, and I had time to bow 4 times’. That success was no accident. The conductor, [Carlo Soliva](https://redirect.nifc.pl/person/7574/en), led the orchestra splendidly – ‘like never before’, according to Chopin. And Chopin played this time on a Viennese Streicher piano – the best available in Warsaw at that time. -->
-
-      
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/21/%5B%E7%BF%BB%E8%AF%91%5D%20%E8%82%96%E9%82%A6%EF%BC%9AA%20%E5%A4%A7%E8%B0%83%E6%B3%A2%E5%85%B0%E6%B0%91%E6%AD%8C%E5%B9%BB%E6%83%B3%E6%9B%B2%EF%BC%8C%E4%BD%9C%E5%93%81%2013/" rel="prev" title="【翻译】肖邦：A 大调波兰民歌幻想曲，作品 13">
+      <i class="fa fa-chevron-left"></i> 【翻译】肖邦：A 大调波兰民歌幻想曲，作品 13
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/18/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Franz Yang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Franz的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/18/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-03-18 20:08:33" itemprop="dateCreated datePublished" datetime="2022-03-18T20:08:33+08:00">2022-03-18</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
   
 
 
@@ -480,6 +332,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#R-%E6%A0%91"><span class="nav-number">1.</span> <span class="nav-text">R 树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2"><span class="nav-number">1.1.1.</span> <span class="nav-text">搜索</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#R-%E6%A0%91%E4%B8%8E%E8%81%9A%E7%B1%BB"><span class="nav-number">1.2.</span> <span class="nav-text">R 树与聚类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Egeopandas%E7%9A%84-R-%E6%A0%91%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%E4%B8%8E%E5%BA%94%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">基于geopandas的 R 树空间索引与应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#geopandas%E7%8E%AF%E5%A2%83%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">geopandas环境的配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#geopandas%E5%9F%BA%E7%A1%80"><span class="nav-number">2.2.</span> <span class="nav-text">geopandas基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#geopandas%E7%9A%84%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">2.2.1.</span> <span class="nav-text">geopandas的核心数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E5%86%99%E6%96%87%E4%BB%B6%EF%BC%9Ageopandas-read-file"><span class="nav-number">2.2.2.</span> <span class="nav-text">读写文件：geopandas.read_file()</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E6%9F%90%E4%B8%80%E8%BE%B9%E7%95%8C%E6%A1%86%E5%86%85%E7%9A%84%E6%95%B0%E6%8D%AE%EF%BC%9Abbox%E5%8F%82%E6%95%B0"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">读取某一边界框内的数据：bbox参数</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#geopandas%E4%B8%AD%E7%9A%84%E7%A9%BA%E9%97%B4%E7%B4%A2%E5%BC%95%EF%BC%9Asindex"><span class="nav-number">2.3.</span> <span class="nav-text">geopandas中的空间索引：sindex</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E6%9C%80%E8%BF%91%E9%82%BB%EF%BC%9Ageopandas-sindex-SpatialIndex-nearest%E6%96%B9%E6%B3%95"><span class="nav-number">2.3.1.</span> <span class="nav-text">查找最近邻：geopandas.sindex.SpatialIndex.nearest方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8shapely%E6%A8%A1%E5%9D%97%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%8C%B9%E9%85%8D"><span class="nav-number">2.3.2.</span> <span class="nav-text">使用shapely模块进一步匹配</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%B9%E9%85%8D%E6%95%88%E6%9E%9C"><span class="nav-number">2.4.</span> <span class="nav-text">匹配效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">3.</span> <span class="nav-text">References</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
